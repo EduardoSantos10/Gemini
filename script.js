@@ -17,7 +17,7 @@ const API_REQUEST_URL = `https://generativelanguage.googleapis.com/v1beta/models
 
 const loadSavedChatHistory = () => {
     const savedConversations = JSON.parse(localStorage.getItem("saved-api-chats")) || [];
-    const isLightTheme = localStorage.getItem("theme-color") === "light_mode";
+    const isLightTheme = localStorage.getItem("themeColor") === "light_mode";
 
     document.body.classList.toggle("light_mode", isLightTheme);
     themeToggleButton.innerHTML = isLightTheme ? '<i class="bx bx-moon"></i>' : '<i class="bx bx-sun"></i>';
@@ -86,7 +86,7 @@ const loadSavedChatHistory = () => {
 };
 
 // create new chat message element
-const createChatMessageElement = a(htmlContent, ...cssClass) => {
+const createChatMessageElement = (htmlContent, ...cssClass) => {
     const messageElement  = document.createElement("div");
     messageElement.classList.add("message", ...cssClass);
     messageElement.innerHTML = htmlContent;
@@ -128,7 +128,7 @@ incomingMessageElement, skipEffect = false) => {
 // Fetch Api Response
 
 const requestApiResponse = async (incomingMessageElement) => {
-    const messageElement = incomingMessageElement.querySelector(".message__text");
+    const messageTextElement = incomingMessageElement.querySelector(".message__text");
 
     try{
         const response = await fetch(API_REQUEST_URL, {
@@ -143,7 +143,7 @@ const requestApiResponse = async (incomingMessageElement) => {
         const responseData = await response.json();
         if (!response.ok) throw new Error(responseData.error.message);
 
-        const responseText = responseData?.conditates?.[0]?.content?.
+        const responseText = responseData?.candidates?.[0]?.content?.
         parts?.[0]?.text;
         if (!responseText) throw new Error("Invalid API Response,");
 
@@ -224,6 +224,94 @@ const displayLoadingAnimation = () =>{
         class="message__icon hide"><i class='bx bx-copy-alt'></i></span>    
     
     `;
-}
 
+    const loadingMessageElement = createChatMessageElement
+    (loadingHtml, "message--incomig", "message--loading");
+    chatHistoryContainer.appendChild(loadingMessageElement);
+
+    requestApiResponse(loadingMessageElement);
+};
+
+
+// Copy message to clipboard
+
+const copyMessageToClipboard = (copyButton) => {
+    const messageContent = copyButton.parentElement.querySelector(".message__text").innerText;
+
+    navigator.clipboard.writeText(messageContent0);
+    copyButton.innerHTML = `<i class ='bx bx-check'></i>`;
+    // Confirmation Icon
+    setTimeout(() => copyButton.innerHTML = `<i class='bx bx-copy-alt'></i>`, 1000); // Revert icon
+};
+
+
+const handleOutgoingMessage = () =>{
+    currentUserMessage = messageForm.querySelector(".prompt__form-input").value.trim() || currentUserMessage;
+    if (!currentUserMessage || isGeneratingResponse) return;
+    // Exit if
+
+    isGeneratingResponse = true;
+
+    const outgoingMessageHtml = `
+
+        <div class="message__content">
+            <img class="message__avatar" src="assets/profile.png"
+            alt="User avatar">
+            <p class="message__text"></p>
+        </div>
+
+    `;
+
+    const outgoingMessageElement = createChatMessageElement
+    (outgoingMessageHtml, "message--outgoing");
+    outgoingMessageElement.querySelector(".message__text").innerText = 
+    currentUserMessage;
+    chatHistoryContainer.appendChild(outgoingMessageElement);
+
+    messageForm.reset();
+    document.body.classList.add("hide-header");
+    setTimeout(displayLoadingAnimation, 500);
+
+};
+
+// Toggle between light and dark themes
+themeToggleButton.addEventListener('click', () =>{
+    const isLightTheme = document.body.classList.toggle("light_mode");
+    localStorage.setItem("themeColor", isLightTheme ? "light_mode" :
+    "dark-mode");
+
+    const newIconClass = isLightTheme ? "bx bx-monon" : "bx bx-sun";
+    themeToggleButton.querySelector("i").className = newIconClass;
+});
+
+// Clear all chat history
+
+clearChatButton.addEventListener('click', () =>{
+    if(confirm("Are you sure you want to delete all chat history?")){
+        localStorage.removeItem("saved-api-chats");
+
+        // Reload chat history
+        loadSavedChatHistory();
+
+        currentUserMessage = null;
+        isGeneratingResponse = false;
+    }
+});
+
+// Handle click on suggestion items
+suggestionItems.forEach(suggestionItems =>{
+    suggestion.addEventListener('click', () =>{
+        currentUserMessage = suggestion.querySelector(".suggests__item-text").innerText;
+        handleOutgoingMessage();
+    });
+});
+
+// Prevent default from submission and handle outgoing message
+messageForm.addEventListener('submit', (e) =>{
+    e.preventDefault();
+    handleOutgoingMessage();
+});
+
+// Load saved chat history on page load
+loadSavedChatHistory();
 
