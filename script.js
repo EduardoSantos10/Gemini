@@ -1,9 +1,9 @@
 const messageForm = document.querySelector(".prompt__form");
 const chatHistoryContainer = document.querySelector(".chats");
-const suggestionItems = document.querySelector(".suggests__item");
+const suggestionItems = document.querySelectorAll(".suggests__item");
 
-const themeToggleButton = document.getElementById("themeToggler");
-const clearChatButton = document.getElementById(".deleteButton");
+const themeToggleButton = document.getElementById("themeToggler"); // Corrigido: sem ponto
+const clearChatButton = document.getElementById("deleteButton");   // Corrigido: sem ponto
 
 // State Variables
 
@@ -62,13 +62,12 @@ const loadSavedChatHistory = () => {
                 </div>
             </div>
             <span onClick="copyMessageToClipboard(this)"
-            class="message__icon hide"><i class='bx bx-copy-alt'></i></
-            span>
+            class="message__icon hide"><i class='bx bx-copy-alt'></i></span>
         
         `;
 
         const incomingMessageElement = createChatMessageElement
-        (responseHtml, "message-incoming");
+        (responseHtml, "message--incoming");
         chatHistoryContainer.appendChild(incomingMessageElement);
 
         const messageTextElement = incomingMessageElement.querySelector
@@ -81,8 +80,7 @@ const loadSavedChatHistory = () => {
 
     });
 
-    document.body.classList.toggle("hide-header", savedConversations.
-    lenght > 0);
+    document.body.classList.toggle("hide-header", savedConversations.length > 0); // Corrigido: length
 };
 
 // create new chat message element
@@ -114,7 +112,7 @@ incomingMessageElement, skipEffect = false) => {
     const typingInterval = setInterval(()=> {
         messageElement.innerHTML += (wordIndex === 0 ? '' : ' ') + 
         wordsArray[wordIndex++];
-        if(wordIndex === wordsArray.lenght){
+        if(wordIndex === wordsArray.length){ // Corrigido: length
             clearInterval(typingInterval);
             isGeneratingResponse = false;
             messageElement.innerHTML = htmlText;
@@ -156,7 +154,7 @@ const requestApiResponse = async (incomingMessageElement) => {
         // Save conversation
 
         let savedConversations = JSON.parse(localStorage.getItem
-            ("saved-api-cheats")) || [];
+            ("saved-api-chats")) || []; // Corrigido: chats
             savedConversations.push({
             userMessage: currentUserMessage,
             apiResponse: responseData
@@ -226,7 +224,7 @@ const displayLoadingAnimation = () =>{
     `;
 
     const loadingMessageElement = createChatMessageElement
-    (loadingHtml, "message--incomig", "message--loading");
+    (loadingHtml, "message--incoming", "message--loading"); // Corrigido: incoming
     chatHistoryContainer.appendChild(loadingMessageElement);
 
     requestApiResponse(loadingMessageElement);
@@ -238,7 +236,7 @@ const displayLoadingAnimation = () =>{
 const copyMessageToClipboard = (copyButton) => {
     const messageContent = copyButton.parentElement.querySelector(".message__text").innerText;
 
-    navigator.clipboard.writeText(messageContent0);
+    navigator.clipboard.writeText(messageContent); // Corrigido: messageContent
     copyButton.innerHTML = `<i class ='bx bx-check'></i>`;
     // Confirmation Icon
     setTimeout(() => copyButton.innerHTML = `<i class='bx bx-copy-alt'></i>`, 1000); // Revert icon
@@ -280,7 +278,7 @@ themeToggleButton.addEventListener('click', () =>{
     localStorage.setItem("themeColor", isLightTheme ? "light_mode" :
     "dark-mode");
 
-    const newIconClass = isLightTheme ? "bx bx-monon" : "bx bx-sun";
+    const newIconClass = isLightTheme ? "bx bx-moon" : "bx bx-sun"; // Corrigido: moon
     themeToggleButton.querySelector("i").className = newIconClass;
 });
 
@@ -299,7 +297,7 @@ clearChatButton.addEventListener('click', () =>{
 });
 
 // Handle click on suggestion items
-suggestionItems.forEach(suggestionItems =>{
+suggestionItems.forEach(suggestion =>{
     suggestion.addEventListener('click', () =>{
         currentUserMessage = suggestion.querySelector(".suggests__item-text").innerText;
         handleOutgoingMessage();
@@ -312,6 +310,4 @@ messageForm.addEventListener('submit', (e) =>{
     handleOutgoingMessage();
 });
 
-// Load saved chat history on page load
-loadSavedChatHistory();
-
+// Load saved chat history
